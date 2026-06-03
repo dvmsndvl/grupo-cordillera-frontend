@@ -1,34 +1,24 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import Login from "./pages/Login";
 import Home from "./pages/Home";
-import api from "./services/api";
-import { useEffect, useState } from "react";
-
+import Pedidos from "./pages/Pedidos";
+import "./App.css";
 
 function App() {
+    return (
+        <BrowserRouter>
+            <Routes>
 
-  const [mensaje, setMensaje] = useState("");
+                <Route path="/" element={<Login />} />
 
-  useEffect(() => {
-    api.get("/")
-      .then((response) => {
-        setMensaje(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-        setMensaje("Error conectando con el BFF");
-      });
-  }, []);
+                <Route path="/home" element={<Home />} />
 
-  return (
-    <div>
-      <h1>Grupo Cordillera</h1>
-      <p>{mensaje}</p>
-    </div>
-  );
+                <Route path="/pedidos" element={<Pedidos />} />
+
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
 export default App;
