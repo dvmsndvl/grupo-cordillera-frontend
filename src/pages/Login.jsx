@@ -12,7 +12,7 @@ function Login() {
 
     useEffect(() => {
         if (error) {
-            const timer = setTimeout(() => setError(""), 4000);
+            const timer = setTimeout(() => setError(""), 5000);
             return () => clearTimeout(timer);
         }
     }, [error]);
@@ -28,7 +28,6 @@ function Login() {
 
         setLoading(true);
 
-        // Simulamos un retraso de conexión para mejorar la UX (animación del botón)
         setTimeout(() => {
             if (usuario === "admin" && password === "1234") {
                 navigate("/home");
@@ -36,27 +35,27 @@ function Login() {
                 setError("Usuario o contraseña incorrectos.");
                 setLoading(false);
             }
-        }, 850);
+        }, 600);
     };
 
     return (
         <div className="login-container">
             <div className="login-box">
                 <h2>Grupo Cordillera</h2>
-                <p style={{ textAlign: "center", color: "var(--text-secondary)", marginBottom: "30px", fontSize: "0.9rem" }}>
-                    Plataforma de monitoreo inteligente
+                <p style={{ textAlign: "center", color: "var(--text-secondary)", marginBottom: "25px", fontSize: "0.88rem" }}>
+                    Plataforma de Monitoreo Organizacional
                 </p>
 
                 <form onSubmit={handleLogin}>
                     <div className="form-group">
-                        <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-secondary)", alignSelf: "flex-start" }}>
+                        <label style={{ fontSize: "0.82rem", fontWeight: "600", color: "var(--text-secondary)", alignSelf: "flex-start" }}>
                             Usuario
                         </label>
                         <div className="input-container">
                             <UserIcon className="input-icon" />
                             <input
                                 type="text"
-                                placeholder="Usuario (admin)"
+                                placeholder="Ingresa tu usuario (admin)"
                                 value={usuario}
                                 onChange={(e) => setUsuario(e.target.value)}
                                 disabled={loading}
@@ -64,8 +63,8 @@ function Login() {
                         </div>
                     </div>
 
-                    <div className="form-group" style={{ marginBottom: "10px" }}>
-                        <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-secondary)", alignSelf: "flex-start" }}>
+                    <div className="form-group" style={{ marginBottom: "5px" }}>
+                        <label style={{ fontSize: "0.82rem", fontWeight: "600", color: "var(--text-secondary)", alignSelf: "flex-start" }}>
                             Contraseña
                         </label>
                         <div className="input-container">
@@ -80,17 +79,15 @@ function Login() {
                         </div>
                     </div>
 
-                    <button type="submit" disabled={loading}>
-                        {loading ? "Ingresando..." : "Iniciar Sesión"}
+                    <button type="submit" disabled={loading} style={{ marginTop: "10px" }}>
+                        {loading ? "Ingresando..." : "Ingresar"}
                     </button>
                 </form>
 
                 {error && (
-                    <div className="toast-container">
-                        <div className="toast toast-error">
-                            <AlertCircleIcon className="toast-icon" />
-                            <span>{error}</span>
-                        </div>
+                    <div className="alert alert-error">
+                        <AlertCircleIcon className="alert-icon" />
+                        <span>{error}</span>
                     </div>
                 )}
             </div>

@@ -24,19 +24,19 @@ function Pedidos() {
     const [editando, setEditando] = useState(null);
     const [filtro, setFiltro] = useState("");
     
-    // Estados de Alertas/Toast
-    const [toast, setToast] = useState(null);
+    // Estado de Alerta Inline
+    const [alerta, setAlerta] = useState(null);
 
-    const showToast = (message, type = "success") => {
-        setToast({ message, type });
+    const mostrarAlerta = (message, type = "success") => {
+        setAlerta({ message, type });
     };
 
     useEffect(() => {
-        if (toast) {
-            const timer = setTimeout(() => setToast(null), 4000);
+        if (alerta) {
+            const timer = setTimeout(() => setAlerta(null), 5000);
             return () => clearTimeout(timer);
         }
-    }, [toast]);
+    }, [alerta]);
 
     const cargarPedidos = () => {
         api.get("/pedidos")
@@ -49,7 +49,7 @@ function Pedidos() {
             })
             .catch((error) => {
                 console.warn("API de Pedidos no disponible, utilizando modo Demo Offline (LocalStorage).");
-                showToast("Conexión con API fallida. Activando modo Demo Offline.", "warning");
+                mostrarAlerta("No se pudo conectar con el servidor. Modo Offline activado.", "warning");
                 cargarDeLocalStorage();
             });
     };
@@ -74,7 +74,7 @@ function Pedidos() {
 
     const guardarPedido = () => {
         if (!nuevoPedido.trim()) {
-            showToast("Por favor, ingrese la descripción del pedido.", "error");
+            mostrarAlerta("Por favor, ingrese la descripción del pedido.", "error");
             return;
         }
 
@@ -87,14 +87,14 @@ function Pedidos() {
             };
             setPedidos(copia);
             setEditando(null);
-            showToast("Pedido actualizado con éxito.", "success");
+            mostrarAlerta("Pedido actualizado correctamente.", "success");
         } else {
             const pedido = {
                 descripcion: nuevoPedido
             };
             copia = [...pedidos, pedido];
             setPedidos(copia);
-            showToast("Pedido registrado con éxito.", "success");
+            mostrarAlerta("Pedido registrado correctamente.", "success");
         }
 
         guardarEnLocalStorage(copia);
@@ -112,7 +112,7 @@ function Pedidos() {
         copia.splice(index, 1);
         setPedidos(copia);
         guardarEnLocalStorage(copia);
-        showToast("Pedido eliminado correctamente.", "success");
+        mostrarAlerta("Pedido eliminado correctamente.", "success");
         
         if (editando === index) {
             setEditando(null);
@@ -120,7 +120,6 @@ function Pedidos() {
         }
     };
 
-    // Filtrar lista por búsqueda en tiempo real
     const pedidosFiltrados = pedidos.filter((pedido) => {
         const desc = (pedido.descripcion || pedido.nombre || "").toLowerCase();
         return desc.includes(filtro.toLowerCase());
@@ -144,14 +143,24 @@ function Pedidos() {
 
             {/* Contenedor Principal */}
             <div className="container">
-                <div style={{ marginBottom: "25px" }}>
-                    <Link to="/home" className="back-link" style={{ marginBottom: "15px" }}>
+                <div style={{ marginBottom: "20px" }}>
+                    <Link to="/home" className="back-link" style={{ marginBottom: "10px" }}>
                         &larr; Volver al Panel
                     </Link>
-                    <h1 style={{ fontFamily: "var(--font-family-title)", fontSize: "2rem", fontWeight: "700", marginTop: "10px" }}>
+                    <h1 style={{ fontFamily: "var(--font-family-title)", fontSize: "1.8rem", fontWeight: "700", marginTop: "5px" }}>
                         Gestión de Pedidos
                     </h1>
                 </div>
+
+                {/* Banner de Alerta Inline */}
+                {alerta && (
+                    <div className={`alert alert-${alerta.type}`} style={{ marginBottom: "20px" }}>
+                        {alerta.type === "success" && <CheckCircleIcon className="alert-icon" />}
+                        {alerta.type === "error" && <AlertCircleIcon className="alert-icon" />}
+                        {alerta.type === "warning" && <AlertCircleIcon className="alert-icon" />}
+                        <span>{alerta.message}</span>
+                    </div>
+                )}
 
                 <div className="pedidos-layout">
                     {/* Columna Izquierda: Formulario */}
@@ -160,8 +169,8 @@ function Pedidos() {
                             {editando !== null ? "Editar Pedido" : "Nuevo Pedido"}
                         </h2>
                         
-                        <div className="form-group" style={{ marginBottom: "20px" }}>
-                            <label style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-secondary)", alignSelf: "flex-start" }}>
+                        <div className="form-group" style={{ marginBottom: "15px" }}>
+                            <label style={{ fontSize: "0.82rem", fontWeight: "600", color: "var(--text-secondary)", alignSelf: "flex-start" }}>
                                 Descripción del Pedido
                             </label>
                             <input
@@ -169,7 +178,7 @@ function Pedidos() {
                                 placeholder="Ej: Compra de laptops corporativas"
                                 value={nuevoPedido}
                                 onChange={(e) => setNuevoPedido(e.target.value)}
-                                style={{ paddingLeft: "16px" }}
+                                style={{ paddingLeft: "12px" }}
                             />
                         </div>
 
@@ -220,9 +229,9 @@ function Pedidos() {
                             <table>
                                 <thead>
                                     <tr>
-                                        <th style={{ width: "10%" }}>#</th>
+                                        <th style={{ width: "8%" }}>#</th>
                                         <th>Descripción del Pedido</th>
-                                        <th style={{ width: "30%", textAlign: "center" }}>Acciones</th>
+                                        <th style={{ width: "25%", textAlign: "center" }}>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -240,7 +249,7 @@ function Pedidos() {
                                                             onClick={() => editarPedido(index)}
                                                             title="Editar pedido"
                                                         >
-                                                            <EditIcon size={14} />
+                                                            <EditIcon size={13} />
                                                             <span>Editar</span>
                                                         </button>
                                                         <button
@@ -248,7 +257,7 @@ function Pedidos() {
                                                             onClick={() => eliminarPedido(index)}
                                                             title="Eliminar pedido"
                                                         >
-                                                            <TrashIcon size={14} />
+                                                            <TrashIcon size={13} />
                                                             <span>Eliminar</span>
                                                         </button>
                                                     </div>
@@ -257,7 +266,7 @@ function Pedidos() {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="3" style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)" }}>
+                                            <td colSpan="3" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)", fontSize: "0.9rem" }}>
                                                 {filtro ? "No se encontraron pedidos coincidentes." : "No hay pedidos registrados."}
                                             </td>
                                         </tr>
@@ -268,18 +277,6 @@ function Pedidos() {
                     </div>
                 </div>
             </div>
-
-            {/* Toasts de Notificación */}
-            {toast && (
-                <div className="toast-container">
-                    <div className={`toast toast-${toast.type}`}>
-                        {toast.type === "success" && <CheckCircleIcon className="toast-icon" />}
-                        {toast.type === "error" && <AlertCircleIcon className="toast-icon" />}
-                        {toast.type === "warning" && <AlertCircleIcon className="toast-icon" />}
-                        <span>{toast.message}</span>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
