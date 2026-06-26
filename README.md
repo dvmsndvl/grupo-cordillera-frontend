@@ -1,4 +1,3 @@
-# grupo-cordillera-frontend
 # Proyecto Grupo Cordillera
 
 Plataforma de monitoreo y gestión organizacional para retail, estructurada bajo una arquitectura desacoplada de microservicios. Permite centralizar y administrar de forma independiente el inventario de productos y los pedidos de las sucursales.
