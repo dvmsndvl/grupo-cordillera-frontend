@@ -12,15 +12,19 @@ import {
 } from "../components/Icons";
 
 const MOCK_PEDIDOS = [
-    { descripcion: "Compra de servidores Dell PowerEdge R750" },
-    { descripcion: "Licencias corporativas de Microsoft Office 365" },
-    { descripcion: "Equipos de red Switch Cisco Catalyst 9300" },
-    { descripcion: "Servicios de consultoría Cloud AWS (100 horas)" }
+    { sucursalOrigen: "Concepción", montoTotal: 85000, estado: "Pendiente", fechaCreacion: "2026-06-04T18:49:06" },
+    { sucursalOrigen: "Calama", montoTotal: 12000, estado: "Pendiente", fechaCreacion: "2026-06-04T18:51:59" },
+    { sucursalOrigen: "Viña del Mar", montoTotal: 300000, estado: "Completado", fechaCreacion: "2026-06-04T19:02:15" }
 ];
 
 function Pedidos() {
     const [pedidos, setPedidos] = useState([]);
-    const [nuevoPedido, setNuevoPedido] = useState("");
+    
+    // Campos del Formulario
+    const [sucursalOrigen, setSucursalOrigen] = useState("");
+    const [montoTotal, setMontoTotal] = useState("");
+    const [estado, setEstado] = useState("Pendiente");
+    
     const [editando, setEditando] = useState(null);
     const [filtro, setFiltro] = useState("");
     
@@ -72,9 +76,17 @@ function Pedidos() {
         cargarPedidos();
     }, []);
 
-    const guardarPedido = () => {
-        if (!nuevoPedido.trim()) {
-            mostrarAlerta("Por favor, ingrese la descripción del pedido.", "error");
+    const guardarPedido = (e) => {
+        e.preventDefault();
+
+        if (!sucursalOrigen.trim() || montoTotal === "") {
+            mostrarAlerta("Por favor, complete todos los campos.", "error");
+            return;
+        }
+
+        const montoVal = parseFloat(montoTotal);
+        if (isNaN(montoVal) || montoVal <= 0) {
+            mostrarAlerta("El monto total debe ser un número positivo.", "error");
             return;
         }
 
@@ -83,27 +95,34 @@ function Pedidos() {
         if (editando !== null) {
             copia[editando] = {
                 ...copia[editando],
-                descripcion: nuevoPedido
+                sucursalOrigen: sucursalOrigen.trim(),
+                montoTotal: montoVal,
+                estado: estado
             };
             setPedidos(copia);
             setEditando(null);
             mostrarAlerta("Pedido actualizado correctamente.", "success");
         } else {
-            const pedido = {
-                descripcion: nuevoPedido
+            const nuevoPedidoObj = {
+                sucursalOrigen: sucursalOrigen.trim(),
+                montoTotal: montoVal,
+                estado: estado,
+                fechaCreacion: new Date().toISOString()
             };
-            copia = [...pedidos, pedido];
+            copia = [...pedidos, nuevoPedidoObj];
             setPedidos(copia);
             mostrarAlerta("Pedido registrado correctamente.", "success");
         }
 
         guardarEnLocalStorage(copia);
-        setNuevoPedido("");
+        limpiarFormulario();
     };
 
     const editarPedido = (index) => {
-        const descripcion = pedidos[index].descripcion || pedidos[index].nombre || "";
-        setNuevoPedido(descripcion);
+        const ped = pedidos[index];
+        setSucursalOrigen(ped.sucursalOrigen || "");
+        setMontoTotal(ped.montoTotal !== undefined ? ped.montoTotal : "");
+        setEstado(ped.estado || "Pendiente");
         setEditando(index);
     };
 
@@ -115,14 +134,20 @@ function Pedidos() {
         mostrarAlerta("Pedido eliminado correctamente.", "success");
         
         if (editando === index) {
-            setEditando(null);
-            setNuevoPedido("");
+            limpiarFormulario();
         }
     };
 
+    const limpiarFormulario = () => {
+        setSucursalOrigen("");
+        setMontoTotal("");
+        setEstado("Pendiente");
+        setEditando(null);
+    };
+
     const pedidosFiltrados = pedidos.filter((pedido) => {
-        const desc = (pedido.descripcion || pedido.nombre || "").toLowerCase();
-        return desc.includes(filtro.toLowerCase());
+        const sucursal = (pedido.sucursalOrigen || "").toLowerCase();
+        return sucursal.includes(filtro.toLowerCase());
     });
 
     return (
@@ -169,42 +194,79 @@ function Pedidos() {
                             {editando !== null ? "Editar Pedido" : "Nuevo Pedido"}
                         </h2>
                         
-                        <div className="form-group" style={{ marginBottom: "15px" }}>
-                            <label style={{ fontSize: "0.82rem", fontWeight: "600", color: "var(--text-secondary)", alignSelf: "flex-start" }}>
-                                Descripción del Pedido
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="Ej: Compra de laptops corporativas"
-                                value={nuevoPedido}
-                                onChange={(e) => setNuevoPedido(e.target.value)}
-                                style={{ paddingLeft: "12px" }}
-                            />
-                        </div>
+                        <form onSubmit={guardarPedido}>
+                            <div className="form-group">
+                                <label style={{ fontSize: "0.82rem", fontWeight: "600", color: "var(--text-secondary)", alignSelf: "flex-start" }}>
+                                    Sucursal de Origen
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Ej: Calama, Concepción"
+                                    value={sucursalOrigen}
+                                    onChange={(e) => setSucursalOrigen(e.target.value)}
+                                    style={{ paddingLeft: "12px" }}
+                                />
+                            </div>
 
-                        <div style={{ display: "flex", gap: "10px" }}>
-                            <button onClick={guardarPedido} style={{ flexGrow: 1 }}>
-                                {editando !== null ? (
-                                    <span>Actualizar Pedido</span>
-                                ) : (
-                                    <>
-                                        <PlusIcon size={16} />
-                                        <span>Crear Pedido</span>
-                                    </>
-                                )}
-                            </button>
-                            {editando !== null && (
-                                <button 
-                                    className="btn-secondary" 
-                                    onClick={() => {
-                                        setEditando(null);
-                                        setNuevoPedido("");
+                            <div className="form-group">
+                                <label style={{ fontSize: "0.82rem", fontWeight: "600", color: "var(--text-secondary)", alignSelf: "flex-start" }}>
+                                    Monto Total ($)
+                                </label>
+                                <input
+                                    type="number"
+                                    placeholder="Ej: 12000"
+                                    value={montoTotal}
+                                    onChange={(e) => setMontoTotal(e.target.value)}
+                                    style={{ paddingLeft: "12px" }}
+                                    min="0"
+                                />
+                            </div>
+
+                            <div className="form-group" style={{ marginBottom: "10px" }}>
+                                <label style={{ fontSize: "0.82rem", fontWeight: "600", color: "var(--text-secondary)", alignSelf: "flex-start" }}>
+                                    Estado
+                                </label>
+                                <select
+                                    value={estado}
+                                    onChange={(e) => setEstado(e.target.value)}
+                                    style={{
+                                        width: "100%",
+                                        padding: "10px 12px",
+                                        backgroundColor: "var(--bg-secondary)",
+                                        border: "1px solid var(--border-color)",
+                                        borderRadius: "var(--border-radius-sm)",
+                                        fontSize: "0.9rem",
+                                        color: "var(--text-primary)"
                                     }}
                                 >
-                                    Cancelar
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Completado">Completado</option>
+                                    <option value="Cancelado">Cancelado</option>
+                                </select>
+                            </div>
+
+                            <div style={{ display: "flex", gap: "10px" }}>
+                                <button type="submit" style={{ flexGrow: 1 }}>
+                                    {editando !== null ? (
+                                        <span>Actualizar Pedido</span>
+                                    ) : (
+                                        <>
+                                            <PlusIcon size={16} />
+                                            <span>Registrar</span>
+                                        </>
+                                    )}
                                 </button>
-                            )}
-                        </div>
+                                {editando !== null && (
+                                    <button 
+                                        type="button"
+                                        className="btn-secondary" 
+                                        onClick={limpiarFormulario}
+                                    >
+                                        Cancelar
+                                    </button>
+                                )}
+                            </div>
+                        </form>
                     </div>
 
                     {/* Columna Derecha: Tabla */}
@@ -218,7 +280,7 @@ function Pedidos() {
                                 <input
                                     type="text"
                                     className="search-input"
-                                    placeholder="Buscar pedido..."
+                                    placeholder="Filtrar por sucursal..."
                                     value={filtro}
                                     onChange={(e) => setFiltro(e.target.value)}
                                 />
@@ -230,7 +292,9 @@ function Pedidos() {
                                 <thead>
                                     <tr>
                                         <th style={{ width: "8%" }}>#</th>
-                                        <th>Descripción del Pedido</th>
+                                        <th>Sucursal Origen</th>
+                                        <th>Monto Total</th>
+                                        <th>Estado</th>
                                         <th style={{ width: "25%", textAlign: "center" }}>Acciones</th>
                                     </tr>
                                 </thead>
@@ -239,8 +303,18 @@ function Pedidos() {
                                         pedidosFiltrados.map((pedido, index) => (
                                             <tr key={index}>
                                                 <td>{index + 1}</td>
-                                                <td style={{ fontWeight: "500" }}>
-                                                    {pedido.descripcion || pedido.nombre || JSON.stringify(pedido)}
+                                                <td style={{ fontWeight: "500" }}>{pedido.sucursalOrigen}</td>
+                                                <td>
+                                                    ${parseFloat(pedido.montoTotal || 0).toLocaleString("es-CL", { minimumFractionDigits: 0 })}
+                                                </td>
+                                                <td>
+                                                    <span style={{
+                                                        fontWeight: "600",
+                                                        color: pedido.estado === "Completado" ? "var(--success)" : 
+                                                               pedido.estado === "Cancelado" ? "var(--danger)" : "var(--warning)"
+                                                    }}>
+                                                        {pedido.estado}
+                                                    </span>
                                                 </td>
                                                 <td>
                                                     <div className="action-buttons" style={{ justifyContent: "center" }}>
@@ -266,7 +340,7 @@ function Pedidos() {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="3" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                                            <td colSpan="5" style={{ textAlign: "center", padding: "30px", color: "var(--text-muted)", fontSize: "0.9rem" }}>
                                                 {filtro ? "No se encontraron pedidos coincidentes." : "No hay pedidos registrados."}
                                             </td>
                                         </tr>
